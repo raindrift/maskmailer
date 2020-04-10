@@ -8,6 +8,9 @@ gem 'shotgun'
 gem 'pry'
 gem 'bcrypt'
 gem 'tux'
+gem 'dotenv'
+gem 'mailgun-ruby'
+gem 'openssl'
 
 group :test do
   gem 'rspec'
