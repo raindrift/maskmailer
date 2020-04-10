@@ -6,10 +6,12 @@ class ApplicationController < Sinatra::Base
     set :public_folder, 'public'
     set :views, 'app/views'
 
-    # for showing exceptions under test. maybe remove.
-    set :raise_errors, true
-    set :dump_errors, false
-    set :show_exceptions, false
+    # TODO: move this elsewhere
+    if ENV["SINATRA_ENV"] == "test"
+      set :raise_errors, true
+      set :dump_errors, false
+      set :show_exceptions, false
+    end
   end
 
   get "/" do
