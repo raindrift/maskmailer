@@ -46,13 +46,18 @@ describe ApplicationController do
 
       sent = Mailgun::Client.deliveries.first
       expect(sent).to be
-      expect(sent[:from]).to eq from
+      expect(sent[:from]).to eq 'no-reply@example.com'
       expect(sent[:to]).to eq to
       expect(sent[:subject]).to eq subject
     end
 
+    it 'sets the reply-to properly' do
+      post '/send', **params
+      sent = Mailgun::Client.deliveries.first
+      expect(sent[:reply_to]).to eq from
+    end
+
     it 'has a captcha'
-    it 'sets the reply-to properly'
     it 'shows the user the message they sent'
 
     context 'with newlines in the message' do

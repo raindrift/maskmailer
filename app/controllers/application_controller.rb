@@ -18,8 +18,10 @@ class ApplicationController < Sinatra::Base
 
   post "/send" do
     client = Mailgun::Client.new ENV.fetch('MAILGUN_API_KEY')
-    client.send_message(ENV.fetch('DOMAIN'), {
-      from: params[:from],
+    domain = ENV.fetch('DOMAIN')
+    client.send_message(domain, {
+      from: "no-reply@#{domain}",
+      reply_to: params[:from],
       to: Recipient.new(params[:to]).email,
       subject: params[:subject],
       text: params[:message],
