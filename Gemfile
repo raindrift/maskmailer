@@ -9,8 +9,10 @@ gem 'pry'
 gem 'bcrypt'
 gem 'tux'
 gem 'dotenv'
+gem 'mail'
 gem 'mailgun-ruby'
 gem 'openssl'
+gem 'recaptcha'
 
 group :test do
   gem 'rspec'
