@@ -1,3 +1,9 @@
+# Intro
+
+This is a little app for emailing the results of forms to people, without
+revealing the recipient's email address, and preventing abuse as a generic
+mail relay. Built to drive the contact form at findthemasks.com.
+
 # Installing
 
 Set up rbenv:
