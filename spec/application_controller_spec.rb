@@ -20,6 +20,7 @@ describe ApplicationController do
     let(:to) { "recipient@example.com" }
     let(:to_encrypted) { Recipient.encode_email(to) }
     let(:subject) { "The message subject" }
+    let(:name) { "" }
     let(:introduction) { "This message was sent via foo.com. You can reply directly to the sender." }
     let(:params) do
       {
@@ -28,6 +29,7 @@ describe ApplicationController do
         to: to_encrypted,
         subject: subject,
         introduction: introduction,
+        name: name,
       }
     end
 
@@ -50,6 +52,7 @@ describe ApplicationController do
       allow(ENV).to receive(:fetch).with('DOMAIN').and_return(domain)
       allow(ENV).to receive(:fetch).with('MAILGUN_API_KEY').and_return('test-api-key')
       allow(ENV).to receive(:fetch).with('RECIPIENT_KEY').and_return('lhVIO5YBMqXZYECJEUWHQlWqzlk90zKd')
+      allow(ENV).to receive(:fetch).with('NAME').and_return('Find The Masks')
     end
 
     it 'receives message via POST, responds via json, includes message text' do
@@ -69,7 +72,7 @@ describe ApplicationController do
 
       sent = Mailgun::Client.deliveries.first
       expect(sent).to be
-      expect(sent[:from]).to eq 'no-reply@example.com'
+      expect(sent[:from]).to eq 'Find The Masks <no-reply@example.com>'
       expect(sent[:to]).to eq to
       expect(sent[:subject]).to eq subject
 
@@ -83,6 +86,16 @@ describe ApplicationController do
       post '/send', **params
       sent = Mailgun::Client.deliveries.first
       expect(sent[:reply_to]).to eq from
+    end
+
+    context 'with a sender name' do
+      let(:name) { "Mr. Foo" }
+
+      it 'includes the sender name in From:' do
+        post '/send', **params
+        sent = Mailgun::Client.deliveries.first
+        expect(sent[:from]).to eq 'Mr. Foo via Find The Masks <no-reply@example.com>'
+      end
     end
 
     context 'when captcha verification fails' do
