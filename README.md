@@ -18,6 +18,8 @@ You'll need a `.env` file with the following:
     FROM=(the address to send from)
     DOMAIN=(the sending domain)
     RECIPIENT_KEY=(a 32-byte key for decrypting the recipient)
+    RECAPTCHA_SITE_KEY=(the site key for recaptcha)
+    RECAPTCHA_SECRET_KEY=(the secret key for recaptcha)
 
 # Running the server in dev
 
@@ -33,24 +35,23 @@ The `To:` address should be stored in a JSON blob as follows:
 
 This is encrypted using `aes-256-cbc` (we're using the Openssl implementation)
 with a shared key and a random 16-byte initialization vector. The iv is then
-prepended to the message, and it is base64 encoded.
+prepended to the ciphertext, and it is base64 encoded.
 
-There is a sample `encrypt` method in `lib/recipient.rb`
+There is a sample Ruby `encrypt` method in `lib/recipient.rb`
 
 The following JavaScript code should also work
 
     var recipient = {email: "foo@example.com"};
 
     var crypto = require('crypto'),
-        cipherName = 'aes-256-cbc',
         key = 'SHARED_KEY_32_CHR_12345678901234'; // 32 Characters
 
     function encrypt(recipient){
       var json = JSON.stringify(recipient);
       var iv = crypto.randomBytes(16);
-      var cipher = crypto.createCipheriv(cipherName,key,iv)
-      var crypted = cipher.update(json,'utf-8')
-      crypted += cipher.final();
-      var ciphertext = Buffer.concat([iv, crypted], iv.length + crypted.length);
-      return cipherText.toString('base64');
+      var cipher = crypto.createCipheriv('aes-256-cbc',key,iv)
+      var ciphertext = cipher.update(json,'utf-8')
+      ciphertext += cipher.final();
+      var result = Buffer.concat([iv, ciphertext], iv.length + ciphertext.length);
+      return result.toString('base64');
     }
