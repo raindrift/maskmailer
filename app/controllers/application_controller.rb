@@ -45,8 +45,12 @@ class ApplicationController < Sinatra::Base
       error 400, 'mailer-bad-from'
     end
 
-    unless params[:message] =~ /^(?!\s*$).+/ # non-blank, non-whitespace string
+    unless params[:text] =~ /^(?!\s*$).+/ # non-blank, non-whitespace string
       error 400, 'mailer-message-blank'
+    end
+
+    unless params[:subject] =~ /^(?!\s*$).+/
+      error 400, 'mailer-subject-blank'
     end
 
     domain = ENV.fetch('DOMAIN')
@@ -59,16 +63,17 @@ class ApplicationController < Sinatra::Base
     end
 
     introduction = params[:introduction]
-    message = params[:message]
+    text = erb(:message, locals: {text: params[:text], introduction: introduction}, layout: nil)
     client = Mailgun::Client.new ENV.fetch('MAILGUN_API_KEY')
-    text = erb(:message, locals: {message: message, introduction: introduction}, layout: nil)
-    sent = client.send_message(domain, {
-      from: from,
-      reply_to: reply_to,
-      to: to,
-      subject: params[:subject],
-      text: text,
-    })
+
+    message = Mailgun::MessageBuilder.new
+    message.from(from)
+    message.add_recipient(:to, to)
+    message.reply_to(reply_to)
+    message.subject(params[:subject])
+    message.body_text(text)
+
+    result = client.send_message(domain, message)
 
     {status: 'success', message: 'mailer-message-sent', text: text}.to_json
   end

@@ -15,7 +15,7 @@ describe ApplicationController do
   end
 
   describe "/send" do
-    let(:message) { "This is an email." }
+    let(:text) { "This is an email." }
     let(:from) { "sender@example.com" }
     let(:to) { "recipient@example.com" }
     let(:to_encrypted) { Recipient.encode_email(to) }
@@ -24,7 +24,7 @@ describe ApplicationController do
     let(:introduction) { "This message was sent via foo.com. You can reply directly to the sender." }
     let(:params) do
       {
-        message: message,
+        text: text,
         from: from,
         to: to_encrypted,
         subject: subject,
@@ -71,22 +71,23 @@ describe ApplicationController do
     it 'sends the email to the recipient using the encrypted address' do
       post '/send', **params
 
-      sent = Mailgun::Client.deliveries.first
+      sent = Mailgun::Client.deliveries.first.message
       expect(sent).to be
-      expect(sent[:from]).to eq 'Find The Masks <no-reply@example.com>'
-      expect(sent[:to]).to eq to
-      expect(sent[:subject]).to eq subject
+      expect(sent[:from]).to eq ['Find The Masks <no-reply@example.com>']
+      expect(sent[:to]).to eq [to]
+      expect(sent[:subject]).to eq [subject]
 
+      text = sent[:text].first
       # check that the message body was included.
-      expect(sent[:text]).to match /sent via foo\.com/
-      expect(sent[:text]).to match /findthemasks.com/
-      expect(sent[:text]).to match /This is an email./
+      expect(text).to match /sent via foo\.com/
+      expect(text).to match /findthemasks.com/
+      expect(text).to match /This is an email./
     end
 
     it 'sets the reply-to properly' do
       post '/send', **params
-      sent = Mailgun::Client.deliveries.first
-      expect(sent[:reply_to]).to eq from
+      sent = Mailgun::Client.deliveries.first.message
+      expect(sent['h:reply-to']).to eq from
     end
 
     context 'with a sender name' do
@@ -94,8 +95,8 @@ describe ApplicationController do
 
       it 'includes the sender name in From:' do
         post '/send', **params
-        sent = Mailgun::Client.deliveries.first
-        expect(sent[:from]).to eq 'Mr. Foo via Find The Masks <no-reply@example.com>'
+        sent = Mailgun::Client.deliveries.first.message
+        expect(sent[:from]).to eq ['Mr. Foo via Find The Masks <no-reply@example.com>']
       end
     end
 
@@ -117,17 +118,17 @@ describe ApplicationController do
     end
 
     context 'with unicode characters in the message and address' do
-      let(:message) { "これはなんですか？" }
+      let(:text) { "これはなんですか？" }
       let(:from) { 'まる君 <maru@example.com>' }
 
       it 'properly encodes the unicode in the response and the message' do
         post '/send', **params
         response = JSON.parse(last_response.body)
-        expect(response['text']).to match message
+        expect(response['text']).to match text
 
-        sent = Mailgun::Client.deliveries.first
-        expect(sent[:reply_to]).to eq from
-        expect(sent[:text]).to match message
+        sent = Mailgun::Client.deliveries.first.message
+        expect(sent['h:reply-to']).to eq from
+        expect(sent[:text].first).to match text
       end
     end
 
@@ -159,7 +160,7 @@ describe ApplicationController do
       end
 
       context 'with a blank message' do
-        let(:message) { "" }
+        let(:text) { "" }
         it 'fails' do
           post '/send', **params
           response = JSON.parse(last_response.body)
@@ -168,8 +169,18 @@ describe ApplicationController do
         end
       end
 
+      context 'with a blank subject' do
+        let(:subject) { "" }
+        it 'fails' do
+          post '/send', **params
+          response = JSON.parse(last_response.body)
+          expect(response['status']).to eq 'error'
+          expect(response['message']).to eq 'mailer-subject-blank'
+        end
+      end
+
       context 'with an all-whitespace message' do
-        let(:message) { "   \n   " }
+        let(:text) { "   \n   " }
         it 'fails' do
           post '/send', **params
           response = JSON.parse(last_response.body)
