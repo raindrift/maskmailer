@@ -16,7 +16,7 @@ describe ApplicationController do
 
   describe "/send" do
     let(:text) { "This is an email." }
-    let(:from) { "sender@example.com" }
+    let(:from) { "reply@example.com" }
     let(:to) { "recipient@example.com" }
     let(:to_encrypted) { Recipient.encode_email(to) }
     let(:subject) { "The message subject" }
@@ -73,7 +73,7 @@ describe ApplicationController do
 
       sent = Mailgun::Client.deliveries.first.message
       expect(sent).to be
-      expect(sent[:from]).to eq ['Find The Masks <no-reply@example.com>']
+      expect(sent[:from]).to eq ['Find The Masks <reply@example.com>']
       expect(sent[:to]).to eq [to]
       expect(sent[:subject]).to eq [subject]
 
@@ -96,7 +96,7 @@ describe ApplicationController do
       it 'includes the sender name in From:' do
         post '/send', **params
         sent = Mailgun::Client.deliveries.first.message
-        expect(sent[:from]).to eq ['Mr. Foo via Find The Masks <no-reply@example.com>']
+        expect(sent[:from]).to eq ['Mr. Foo via Find The Masks <reply@example.com>']
       end
     end
 

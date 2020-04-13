@@ -53,13 +53,13 @@ class ApplicationController < Sinatra::Base
       error 400, 'mailer-subject-blank'
     end
 
-    domain = ENV.fetch('DOMAIN')
     project_name = ENV.fetch('NAME')
+    from_address = ENV.fetch('FROM')
 
     if params[:name] =~ /^(?!\s*$).+/
-      from = "#{params[:name]} via #{project_name} <no-reply@#{domain}>"
+      from = "#{params[:name]} via #{project_name} <#{from_address}>"
     else
-      from = "#{project_name} <no-reply@#{domain}>"
+      from = "#{project_name} <#{from_address}>"
     end
 
     introduction = params[:introduction]
@@ -73,7 +73,7 @@ class ApplicationController < Sinatra::Base
     message.subject(params[:subject])
     message.body_text(text)
 
-    result = client.send_message(domain, message)
+    result = client.send_message(ENV.fetch('DOMAIN'), message)
 
     {status: 'success', message: 'mailer-message-sent', text: text}.to_json
   end
