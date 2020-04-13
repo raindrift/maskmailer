@@ -4,7 +4,20 @@ This is a little app for emailing the results of forms to people, without
 revealing the recipient's email address, and preventing abuse as a generic
 mail relay. Built to drive the contact form at findthemasks.com.
 
-# Encrypted address format
+# Parameters
+
+You'll need to supply the following params:
+
+- `to`: The encrypted recipient (see below)
+- `from`: The cleartext From: address
+- `name`: Sender's name
+- `subject`: Message subject line
+- `text`: Message text
+- `introduction`: Preamble, inserted before the message text.
+
+The `introduction` is provided by the client with each request so that it can be translated.
+
+## Encrypted address format
 
 The `To:` address should be stored in a JSON blob as follows:
 
@@ -33,6 +46,13 @@ The following JavaScript code should also work
       var result = Buffer.concat([iv, ciphertext], iv.length + ciphertext.length);
       return encodeURIComponent(result.toString('base64'));
     }
+
+## Real-world testing
+
+To check that your sender data is properly encrypted and encoded, visit
+`/decrypt` where you can find a simple webform to test it.
+
+To send a test email with your encrypted address, visit `/compose`
 
 # Development setup
 
