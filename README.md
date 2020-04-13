@@ -12,7 +12,8 @@ The `To:` address should be stored in a JSON blob as follows:
 
 This is encrypted using `aes-256-cbc` (we're using the Openssl implementation)
 with a shared key and a random 16-byte initialization vector. The iv is then
-prepended to the ciphertext, and it is base64 encoded.
+prepended to the ciphertext, is base64 encoded, and then is urlencoded so it
+can be represented on a single line.
 
 There is a sample Ruby `encrypt` method in `lib/recipient.rb`
 
@@ -30,7 +31,7 @@ The following JavaScript code should also work
       var ciphertext = cipher.update(json,'utf-8')
       ciphertext += cipher.final();
       var result = Buffer.concat([iv, ciphertext], iv.length + ciphertext.length);
-      return result.toString('base64');
+      return encodeURIComponent(result.toString('base64'));
     }
 
 # Development setup

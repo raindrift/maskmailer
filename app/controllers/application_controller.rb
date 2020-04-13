@@ -25,6 +25,11 @@ class ApplicationController < Sinatra::Base
     erb :welcome
   end
 
+  # handy for testing crypto, put it behind a captcha before deploying
+  # get "/decrypt" do
+  #   Recipient.new(params[:recipient]).email
+  # end
+
   post "/send" do
     content_type :json
 
