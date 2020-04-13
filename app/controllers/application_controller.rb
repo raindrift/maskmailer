@@ -75,6 +75,10 @@ class ApplicationController < Sinatra::Base
 
     result = client.send_message(ENV.fetch('DOMAIN'), message)
 
+    if result.code != 200
+      halt 500, {status: 'error', message: 'mailer-mail-failed', mailgun_error: result.to_h['message']}.to_json
+    end
+
     {status: 'success', message: 'mailer-message-sent', text: text}.to_json
   end
 
