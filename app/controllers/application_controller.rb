@@ -3,6 +3,7 @@ require 'json'
 
 class ApplicationController < Sinatra::Base
   include Recaptcha::Adapters::ControllerMethods
+  include Recaptcha::Adapters::ViewMethods
 
   configure do
     set :public_folder, 'public'
@@ -25,11 +26,6 @@ class ApplicationController < Sinatra::Base
     erb :welcome
   end
 
-  # handy for testing crypto, put it behind a captcha before deploying
-  # get "/decrypt" do
-  #   Recipient.new(params[:recipient]).email
-  # end
-
   post "/send" do
     content_type :json
 
@@ -37,7 +33,7 @@ class ApplicationController < Sinatra::Base
       error 403, 'mailer-captcha-failed'
     end
 
-    validator = Mailgun::Address.new ENV.fetch('MAILGUN_API_KEY')
+    validator = Mailgun::Address.new ENV.fetch('MAILGUN_VALIDATION_KEY')
 
     to = Recipient.new(params[:to]).email
     unless validator.validate(to)
@@ -62,8 +58,10 @@ class ApplicationController < Sinatra::Base
       from = "#{project_name} <no-reply@#{domain}>"
     end
 
+    introduction = params[:introduction]
+    message = params[:message]
     client = Mailgun::Client.new ENV.fetch('MAILGUN_API_KEY')
-    text = erb(:message, locals: params, layout: nil)
+    text = erb(:message, locals: {message: message, introduction: introduction}, layout: nil)
     sent = client.send_message(domain, {
       from: from,
       reply_to: reply_to,
@@ -73,6 +71,26 @@ class ApplicationController < Sinatra::Base
     })
 
     {status: 'success', message: 'mailer-message-sent', text: text}.to_json
+  end
+
+  get "/decrypt" do
+    erb :decrypt
+  end
+
+  get "/compose" do
+    erb :compose
+  end
+
+  get "/process_decrypt" do
+    unless verify_recaptcha
+      halt 403, 'Captcha failed'
+    end
+
+    begin
+      Recipient.new(params[:recipient]).cleartext
+    rescue ArgumentError => e
+      e.message
+    end
   end
 
   private

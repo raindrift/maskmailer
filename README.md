@@ -53,6 +53,7 @@ installed, install the gems:
 You'll need a `.env` file with the following:
 
     MAILGUN_API_KEY=(an api key)
+    MAILGUN_VALIDATION_KEY=(a public key for the validation api)
     FROM=(the address to send from)
     DOMAIN=(the sending domain)
     RECIPIENT_KEY=(a 32-byte key for decrypting the recipient)

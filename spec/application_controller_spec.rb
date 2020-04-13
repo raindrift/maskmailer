@@ -51,6 +51,7 @@ describe ApplicationController do
       allow(ENV).to receive(:fetch).with('FROM').and_return(from)
       allow(ENV).to receive(:fetch).with('DOMAIN').and_return(domain)
       allow(ENV).to receive(:fetch).with('MAILGUN_API_KEY').and_return('test-api-key')
+      allow(ENV).to receive(:fetch).with('MAILGUN_VALIDATION_KEY').and_return('test-validation-key')
       allow(ENV).to receive(:fetch).with('RECIPIENT_KEY').and_return('lhVIO5YBMqXZYECJEUWHQlWqzlk90zKd')
       allow(ENV).to receive(:fetch).with('NAME').and_return('Find The Masks')
     end
@@ -177,5 +178,49 @@ describe ApplicationController do
         end
       end
     end
+  end
+
+  describe "/decrypt" do
+    it "presents a simple crypto test form" do
+      get '/decrypt'
+      expect(last_response.status).to eq(200)
+      expect(last_response.body).to include("Encrypted email address")
+    end
+  end
+
+  describe "/compose" do
+    it "presents a compose form" do
+      get '/compose'
+      expect(last_response.status).to eq(200)
+      expect(last_response.body).to include("Encrypted email address")
+      expect(last_response.body).to include("Compose")
+    end
+  end
+
+  describe "/process_decrypt" do
+    let(:captcha_verified) { true }
+    let(:recipient) { Recipient.encode_email('foo@example.com') }
+
+    before do
+      allow_any_instance_of(Recaptcha::Adapters::ControllerMethods).to receive(:verify_recaptcha).and_return(captcha_verified)
+    end
+
+    it "decripts the presented text" do
+      get '/process_decrypt', recipient: recipient
+      expect(last_response.status).to eq(200)
+      expect(last_response.body).to include("foo@example.com")
+    end
+
+    context 'when captcha verification fails' do
+      let(:captcha_verified) { false }
+
+      it 'returns an error' do
+        get '/process_decrypt', recipient: recipient
+
+        expect(last_response.status).to eq(403)
+        expect(last_response.body).to include("Captcha failed")
+      end
+    end
+
   end
 end

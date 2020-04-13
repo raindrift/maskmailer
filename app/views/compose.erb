@@ -1,0 +1,30 @@
+<form method="post" action="/send">
+    <p>
+        Compose a test message
+    </p>
+    <p>
+        Encrypted email address (to): <input type="text" size=40 name="to">
+    </p>
+    <p>
+        From: <input type="text" size=40 name="from">
+    </p>
+    <p>
+        Sender name: <input type="text" size=40 name="name">
+    </p>
+    <p>
+        Subject: <input type="text" size=40 name="subject">
+    </p>
+    <p>
+        Intro text: <input type="text" size=40 name="introduction">
+    </p>
+    <p>
+        Message: <input type="text" size=40 name="message">
+    </p>
+    <p>
+        <%= recaptcha_tags %>
+    </p>
+    <p>
+        <input type="submit">
+    </p>
+</form>
+

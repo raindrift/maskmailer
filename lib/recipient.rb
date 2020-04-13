@@ -4,11 +4,12 @@ require 'json'
 
 class Recipient
   def initialize(ciphertext)
-    recipient = JSON.parse(Recipient.decrypt(ciphertext))
+    @cleartext = Recipient.decrypt(ciphertext)
+    recipient = JSON.parse(@cleartext)
     @email = recipient['email']
   end
 
-  attr_reader :email
+  attr_reader :email, :cleartext
 
   # for the moment this is used mostly in testing
   def self.encode_email(recipient)
