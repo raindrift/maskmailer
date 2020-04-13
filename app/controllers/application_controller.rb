@@ -7,13 +7,12 @@ class ApplicationController < Sinatra::Base
   configure do
     set :public_folder, 'public'
     set :views, 'app/views'
+  end
 
-    # TODO: move this elsewhere
-    if ENV["SINATRA_ENV"] == "test"
-      set :raise_errors, true
-      set :dump_errors, false
-      set :show_exceptions, false
-    end
+  configure :test do
+    set :raise_errors, true
+    set :dump_errors, false
+    set :show_exceptions, false
   end
 
   get "/" do

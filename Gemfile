@@ -1,3 +1,5 @@
+ruby '2.6.5'
+
 source 'http://rubygems.org'
 
 gem 'sinatra'
@@ -9,6 +11,7 @@ gem 'pry'
 gem 'bcrypt'
 gem 'tux'
 gem 'dotenv'
+gem 'rack-ssl-enforcer'
 gem 'mail'
 gem 'mailgun-ruby'
 gem 'openssl'
