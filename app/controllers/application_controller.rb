@@ -15,6 +15,12 @@ class ApplicationController < Sinatra::Base
     set :show_exceptions, false
   end
 
+  before do
+    if ENV['SINATRA_ENV'] == 'production'
+      redirect request.url.sub('http', 'https') unless request.secure?
+    end
+  end
+
   get "/" do
     erb :welcome
   end
