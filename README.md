@@ -59,6 +59,10 @@ To check that your sender data is properly encrypted and encoded, visit
 
 To send a test email with your encrypted address, visit `/compose`
 
+To encrypt an address, from the project root run:
+
+    scripts/encrypt-email.rb foo@example.com
+
 # Development setup
 
 ## Installing
