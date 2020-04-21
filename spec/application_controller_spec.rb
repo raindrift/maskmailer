@@ -191,47 +191,74 @@ describe ApplicationController do
     end
   end
 
+
   describe "/decrypt" do
-    it "presents a simple crypto test form" do
+    it "fails without auth" do
       get '/decrypt'
-      expect(last_response.status).to eq(200)
-      expect(last_response.body).to include("Encrypted email address")
+      expect(last_response.status).to eq(401)
     end
   end
 
   describe "/compose" do
-    it "presents a compose form" do
+    it "fails without auth" do
       get '/compose'
-      expect(last_response.status).to eq(200)
-      expect(last_response.body).to include("Encrypted email address")
-      expect(last_response.body).to include("Compose")
+      expect(last_response.status).to eq(401)
     end
   end
 
   describe "/process_decrypt" do
-    let(:captcha_verified) { true }
-    let(:recipient) { Recipient.encode_email('foo@example.com') }
+    it "fails without auth" do
+      get '/process_decrypt'
+      expect(last_response.status).to eq(401)
+    end
+  end
 
+  context 'when authenticated' do
     before do
-      allow_any_instance_of(Recaptcha::Adapters::ControllerMethods).to receive(:verify_recaptcha).and_return(captcha_verified)
+      allow_any_instance_of(ApplicationController).to receive(:protected!)
     end
 
-    it "decripts the presented text" do
-      get '/process_decrypt', recipient: recipient
-      expect(last_response.status).to eq(200)
-      expect(last_response.body).to include("foo@example.com")
-    end
-
-    context 'when captcha verification fails' do
-      let(:captcha_verified) { false }
-
-      it 'returns an error' do
-        get '/process_decrypt', recipient: recipient
-
-        expect(last_response.status).to eq(403)
-        expect(last_response.body).to include("Captcha failed")
+    describe "/decrypt" do
+      it "presents a simple crypto test form" do
+        get '/decrypt'
+        expect(last_response.status).to eq(200)
+        expect(last_response.body).to include("Encrypted email address")
       end
     end
 
+    describe "/compose" do
+      it "presents a compose form" do
+        get '/compose'
+        expect(last_response.status).to eq(200)
+        expect(last_response.body).to include("Encrypted email address")
+        expect(last_response.body).to include("Compose")
+      end
+    end
+
+    describe "/process_decrypt" do
+      let(:captcha_verified) { true }
+      let(:recipient) { Recipient.encode_email('foo@example.com') }
+
+      before do
+        allow_any_instance_of(Recaptcha::Adapters::ControllerMethods).to receive(:verify_recaptcha).and_return(captcha_verified)
+      end
+
+      it "decripts the presented text" do
+        get '/process_decrypt', recipient: recipient
+        expect(last_response.status).to eq(200)
+        expect(last_response.body).to include("foo@example.com")
+      end
+
+      context 'when captcha verification fails' do
+        let(:captcha_verified) { false }
+
+        it 'returns an error' do
+          get '/process_decrypt', recipient: recipient
+
+          expect(last_response.status).to eq(403)
+          expect(last_response.body).to include("Captcha failed")
+        end
+      end
+    end
   end
 end

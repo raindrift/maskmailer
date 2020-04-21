@@ -52,12 +52,18 @@ The following JavaScript code should also work
       return encodeURIComponent(result.toString('base64'));
     }
 
+It should go without saying, but this is server-side JavaScript code. Sending
+the keys to the client defeats the purpose of encrypting addresses.
+
 ## Real-world testing
 
 To check that your sender data is properly encrypted and encoded, visit
 `/decrypt` where you can find a simple webform to test it.
 
 To send a test email with your encrypted address, visit `/compose`
+
+These endpoints are authenticated with the username `admin`, password set in
+an env variable.
 
 To encrypt an address, from the project root run:
 
@@ -88,6 +94,7 @@ You'll need a `.env` file with the following:
     RECIPIENT_KEY=(a 32-byte key for decrypting the recipient)
     RECAPTCHA_SITE_KEY=(the site key for recaptcha)
     RECAPTCHA_SECRET_KEY=(the secret key for recaptcha)
+    ADMIN_PASSWORD=(simple cleartext password for admin access)
 
 ## Running the server in dev
 

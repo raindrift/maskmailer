@@ -16,6 +16,19 @@ class ApplicationController < Sinatra::Base
     set :show_exceptions, false
   end
 
+  helpers do
+    def protected!
+      return if authorized?
+      headers['WWW-Authenticate'] = 'Basic realm="Restricted Area"'
+      halt 401, "Not authorized\n"
+    end
+
+    def authorized?
+      @auth ||=  Rack::Auth::Basic::Request.new(request.env)
+      @auth.provided? and @auth.basic? and @auth.credentials and @auth.credentials == ['admin', ENV.fetch('ADMIN_PASSWORD')]
+    end
+  end
+
   before do
     if ENV['SINATRA_ENV'] == 'production'
       redirect request.url.sub('http', 'https') unless request.secure?
@@ -83,14 +96,17 @@ class ApplicationController < Sinatra::Base
   end
 
   get "/decrypt" do
+    protected!
     erb :decrypt
   end
 
   get "/compose" do
+    protected!
     erb :compose
   end
 
   get "/process_decrypt" do
+    protected!
     unless verify_recaptcha
       halt 403, 'Captcha failed'
     end
