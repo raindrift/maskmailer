@@ -46,9 +46,10 @@ The following JavaScript code should also work
       var json = JSON.stringify(recipient);
       var iv = crypto.randomBytes(16);
       var cipher = crypto.createCipheriv('aes-256-cbc',key,iv)
-      var ciphertext = cipher.update(json,'utf-8')
-      ciphertext += cipher.final();
-      var result = Buffer.concat([iv, ciphertext], iv.length + ciphertext.length);
+      var ciphertext = cipher.update(json,'utf-8','latin1')
+      ciphertext += cipher.final('latin1');
+      var cipherBuffer = Buffer.from(ciphertext, 'latin1');
+      var result = Buffer.concat([iv, cipherBuffer], iv.length + cipherBuffer.length);
       return encodeURIComponent(result.toString('base64'));
     }
 
