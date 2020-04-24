@@ -34,6 +34,7 @@ class ApplicationController < Sinatra::Base
     if ENV['SINATRA_ENV'] == 'production'
       redirect request.url.sub('http', 'https') unless request.secure?
     end
+    response.headers['Access-Control-Allow-Origin'] = '*'
   end
 
   get "/" do
