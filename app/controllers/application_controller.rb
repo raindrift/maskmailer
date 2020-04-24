@@ -8,6 +8,7 @@ class ApplicationController < Sinatra::Base
   configure do
     set :public_folder, 'public'
     set :views, 'app/views'
+    enable :cross_origin
   end
 
   configure :test do
@@ -116,6 +117,13 @@ class ApplicationController < Sinatra::Base
     rescue ArgumentError => e
       e.message
     end
+  end
+
+  options "*" do
+    response.headers["Allow"] = "GET, PUT, POST, DELETE, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, Accept, X-User-Email, X-Auth-Token"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    200
   end
 
   private

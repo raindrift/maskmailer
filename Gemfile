@@ -15,6 +15,7 @@ gem 'mail'
 gem 'mailgun-ruby'
 gem 'openssl'
 gem 'recaptcha'
+gem 'sinatra-cross_origin'
 
 group :test do
   gem 'rspec'
