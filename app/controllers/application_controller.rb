@@ -48,10 +48,9 @@ class ApplicationController < Sinatra::Base
       error 403, 'mailer-captcha-failed'
     end
 
-
     begin
       to = Recipient.new(params[:to]).email
-    rescue OpenSSL::Cipher::CipherError
+    rescue ArgumentError, OpenSSL::Cipher::CipherError
       error 500, 'mailer-decrypt-failed'
     end
 
@@ -119,9 +118,7 @@ class ApplicationController < Sinatra::Base
 
     begin
       Recipient.new(params[:recipient]).cleartext
-    rescue ArgumentError => e
-      e.message
-    rescue OpenSSL::Cipher::CipherError => e
+    rescue ArgumentError, OpenSSL::Cipher::CipherError => e
       e.message
     end
   end
@@ -144,7 +141,6 @@ class ApplicationController < Sinatra::Base
   end
 
   def validate_email address
-    result = validator.validate(address)
-    result[:result] != 'undeliverable'
+    validator.validate(address)['is_valid']
   end
 end

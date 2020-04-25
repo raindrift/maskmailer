@@ -34,8 +34,8 @@ describe ApplicationController do
     end
 
     let(:client) { Mailgun::Client.new 'test-api-key' }
-    let(:valid_email) { {result: 'deliverable'} }
-    let(:invalid_email) { {result: 'undeliverable'} }
+    let(:valid_email) { {'is_valid' => true} }
+    let(:invalid_email) { {'is_valid' => false} }
     let(:validator) { double(:mailgun_address, validate: valid_email) }
 
     let(:domain) { 'example.com' }
