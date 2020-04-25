@@ -34,7 +34,9 @@ describe ApplicationController do
     end
 
     let(:client) { Mailgun::Client.new 'test-api-key' }
-    let(:validator) { double(:mailgun_address, validate: true) }
+    let(:valid_email) { {result: 'deliverable'} }
+    let(:invalid_email) { {result: 'undeliverable'} }
+    let(:validator) { double(:mailgun_address, validate: valid_email) }
 
     let(:domain) { 'example.com' }
 
@@ -135,7 +137,7 @@ describe ApplicationController do
     context 'when provided with invalid data' do
       context 'with a bad from address' do
         before do
-          expect(validator).to receive(:validate).with(from).and_return false
+          expect(validator).to receive(:validate).with(from).and_return invalid_email
         end
 
         it 'fails' do
@@ -148,7 +150,7 @@ describe ApplicationController do
 
       context 'with a bad to address' do
         before do
-          expect(validator).to receive(:validate).with(to).and_return false
+          expect(validator).to receive(:validate).with(to).and_return invalid_email
         end
 
         it 'fails' do

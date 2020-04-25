@@ -48,7 +48,6 @@ class ApplicationController < Sinatra::Base
       error 403, 'mailer-captcha-failed'
     end
 
-    validator = Mailgun::Address.new ENV.fetch('MAILGUN_VALIDATION_KEY')
 
     begin
       to = Recipient.new(params[:to]).email
@@ -56,12 +55,12 @@ class ApplicationController < Sinatra::Base
       error 500, 'mailer-decrypt-failed'
     end
 
-    unless validator.validate(to)
+    unless validate_email(to)
       error 400, 'mailer-bad-to'
     end
 
     reply_to = params[:from]
-    unless validator.validate(reply_to)
+    unless validate_email(reply_to)
       error 400, 'mailer-bad-from'
     end
 
@@ -140,4 +139,12 @@ class ApplicationController < Sinatra::Base
     halt code, {status: 'error', message: message}.to_json
   end
 
+  def validator
+    @validator ||= Mailgun::Address.new ENV.fetch('MAILGUN_VALIDATION_KEY')
+  end
+
+  def validate_email address
+    result = validator.validate(address)
+    result[:result] != 'undeliverable'
+  end
 end
