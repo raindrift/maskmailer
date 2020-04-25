@@ -50,7 +50,12 @@ class ApplicationController < Sinatra::Base
 
     validator = Mailgun::Address.new ENV.fetch('MAILGUN_VALIDATION_KEY')
 
-    to = Recipient.new(params[:to]).email
+    begin
+      to = Recipient.new(params[:to]).email
+    rescue OpenSSL::Cipher::CipherError
+      error 500, 'mailer-decrypt-failed'
+    end
+
     unless validator.validate(to)
       error 400, 'mailer-bad-to'
     end
@@ -116,6 +121,8 @@ class ApplicationController < Sinatra::Base
     begin
       Recipient.new(params[:recipient]).cleartext
     rescue ArgumentError => e
+      e.message
+    rescue OpenSSL::Cipher::CipherError => e
       e.message
     end
   end
