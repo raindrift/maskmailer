@@ -80,8 +80,9 @@ class ApplicationController < Sinatra::Base
       from = "#{project_name} <#{from_address}>"
     end
 
-    introduction = params[:introduction]
-    text = erb(:message, locals: {text: params[:text], introduction: introduction}, layout: nil)
+    introduction = format_for_email params[:introduction]
+    text = format_for_email params[:text]
+    html = erb(:message, locals: {text: params[:text], introduction: introduction}, layout: nil)
     client = Mailgun::Client.new ENV.fetch('MAILGUN_API_KEY')
 
     message = Mailgun::MessageBuilder.new
@@ -89,7 +90,7 @@ class ApplicationController < Sinatra::Base
     message.add_recipient(:to, to)
     message.reply_to(reply_to)
     message.subject(params[:subject])
-    message.body_text(text)
+    message.body_html(html)
 
     result = client.send_message(ENV.fetch('DOMAIN'), message)
 
@@ -97,7 +98,7 @@ class ApplicationController < Sinatra::Base
       halt 500, {status: 'error', message: 'mailer-mail-failed', mailgun_error: result.to_h['message']}.to_json
     end
 
-    {status: 'success', message: 'mailer-message-sent', text: text}.to_json
+    {status: 'success', message: 'mailer-message-sent', html: html}.to_json
   end
 
   get "/decrypt" do
@@ -142,5 +143,12 @@ class ApplicationController < Sinatra::Base
 
   def validate_email address
     validator.validate(address)['is_valid']
+  end
+
+  def format_for_email text
+    text.gsub!(/</, '&lt;')
+    text.gsub!(/>/, '&gt;')
+    text.gsub!(/\n/, "<br/>\n")
+    text
   end
 end

@@ -65,9 +65,9 @@ describe ApplicationController do
       response = JSON.parse(last_response.body)
       expect(response['status']).to eq 'success'
       expect(response['message']).to eq 'mailer-message-sent'
-      expect(response['text']).to match /sent via foo\.com/
-      expect(response['text']).to match /findthemasks.com/
-      expect(response['text']).to match /This is an email./
+      expect(response['html']).to match /sent via foo\.com/
+      expect(response['html']).to match /findthemasks.com/
+      expect(response['html']).to match /This is an email./
     end
 
     it 'sends the email to the recipient using the encrypted address' do
@@ -79,11 +79,11 @@ describe ApplicationController do
       expect(sent[:to]).to eq [to]
       expect(sent[:subject]).to eq [subject]
 
-      text = sent[:text].first
+      html = sent[:html].first
       # check that the message body was included.
-      expect(text).to match /sent via foo\.com/
-      expect(text).to match /findthemasks.com/
-      expect(text).to match /This is an email./
+      expect(html).to match /sent via foo\.com/
+      expect(html).to match /findthemasks.com/
+      expect(html).to match /This is an email./
     end
 
     it 'sets the reply-to properly' do
@@ -116,7 +116,30 @@ describe ApplicationController do
     end
 
     context 'with newlines in the message' do
-      it 'handles the newlines gracefully'
+      let(:text) { "This is a line.\n\nSecond line."}
+      it 'translates them to html linebreaks' do
+        post '/send', **params
+        response = JSON.parse(last_response.body)
+        expect(response['html']).to match 'This is a line.<br/>\n<br/>\nSecond line.'
+      end
+    end
+
+    context 'with html in the message' do
+      let(:text) { "<p>This is some html</p>" }
+      it 'escapes the html' do
+        post '/send', **params
+        response = JSON.parse(last_response.body)
+        expect(response['html']).to match '&lt;p&gt;This is some html&lt;/p&gt;'
+      end
+    end
+
+    context 'with html in the intro' do
+      let(:introduction) { "<p>This is some html</p>" }
+      it 'escapes the html' do
+        post '/send', **params
+        response = JSON.parse(last_response.body)
+        expect(response['html']).to match '&lt;p&gt;This is some html&lt;/p&gt;'
+      end
     end
 
     context 'with unicode characters in the message and address' do
@@ -126,11 +149,11 @@ describe ApplicationController do
       it 'properly encodes the unicode in the response and the message' do
         post '/send', **params
         response = JSON.parse(last_response.body)
-        expect(response['text']).to match text
+        expect(response['html']).to match text
 
         sent = Mailgun::Client.deliveries.first.message
         expect(sent['h:reply-to']).to eq from
-        expect(sent[:text].first).to match text
+        expect(sent[:html].first).to match text
       end
     end
 
