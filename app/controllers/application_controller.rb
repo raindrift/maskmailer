@@ -92,6 +92,10 @@ class ApplicationController < Sinatra::Base
     message.subject(params[:subject])
     message.body_html(html)
 
+    # these should help prevent auto-responses
+    message.header('Precedence', 'list')
+    message.header('X-Auto-Response-Suppress', 'All')
+
     result = client.send_message(ENV.fetch('DOMAIN'), message)
 
     if result.code != 200

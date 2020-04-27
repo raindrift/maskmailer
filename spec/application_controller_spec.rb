@@ -92,6 +92,13 @@ describe ApplicationController do
       expect(sent['h:reply-to']).to eq from
     end
 
+    it 'sets some headers to suppress auto-responders' do
+      post '/send', **params
+      sent = Mailgun::Client.deliveries.first.message
+      expect(sent['h:Precedence']).to eq 'list'
+      expect(sent['h:X-Auto-Response-Suppress']).to eq 'All'
+    end
+
     context 'with a sender name' do
       let(:name) { "Mr. Foo" }
 
