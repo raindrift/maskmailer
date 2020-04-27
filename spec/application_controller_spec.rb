@@ -95,7 +95,6 @@ describe ApplicationController do
     it 'sets some headers to suppress auto-responders' do
       post '/send', **params
       sent = Mailgun::Client.deliveries.first.message
-      expect(sent['h:Precedence']).to eq 'list'
       expect(sent['h:X-Auto-Response-Suppress']).to eq 'All'
     end
 
